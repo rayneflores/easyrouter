@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">EasyRouter</string>
+    <string name="title_activity_main">EasyRouter</string>
+    <string name="package_name">es.tribucorp.easyrouter</string>
+    <string name="custom_url_scheme">es.tribucorp.easyrouter</string>
+</resources>

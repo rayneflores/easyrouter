@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/core" },
+    { "path": "packages/driver-simwifi6" },
+    { "path": "packages/driver-demo" },
+    { "path": "packages/driver-openwrt" },
+    { "path": "packages/driver-tplink" },
+    { "path": "packages/gateway" }
+  ]
+}

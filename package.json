@@ -1,0 +1,27 @@
+{
+  "name": "easyrouter",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "dev:gateway": "npm run dev --workspace @ryfsystems/gateway",
+    "dev:web": "npm run dev --workspace @ryfsystems/web",
+    "desktop": "npm start --workspace @ryfsystems/desktop",
+    "typecheck": "tsc --build --force",
+    "clean": "tsc --build --clean"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "^5.9.3"
+  },
+  "author": "Ing. Rayne Flores <rayne.flores@tribucorp.es>",
+  "publisher": "ryfsystems",
+  "description": "EasyRouter — gestión de routers (ryfsystems)"
+}

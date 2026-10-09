@@ -1,0 +1,19 @@
+{
+  "name": "@ryfsystems/driver-tplink",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc --build"
+  },
+  "dependencies": {
+    "@ryfsystems/core": "*",
+    "undici": "^6.21.0"
+  },
+  "author": "Ing. Rayne Flores <rayne.flores@tribucorp.es>",
+  "publisher": "ryfsystems"
+}

@@ -1,0 +1,32 @@
+node_modules/
+dist/
+data/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+
+# Secretos / credenciales
+credentials.json
+
+# Android (Capacitor)
+apps/web/android/.gradle/
+apps/web/android/build/
+apps/web/android/app/build/
+apps/web/android/local.properties
+apps/web/android/.idea/
+apps/web/android/app/src/main/assets/public/
+*.apk
+*.aab
+*.keystore
+
+# iOS (Capacitor) — se genera en Mac
+apps/web/ios/App/Pods/
+apps/web/ios/App/build/
+apps/web/ios/App/App/public/
+
+# Electron
+apps/desktop/dist/
+release/
