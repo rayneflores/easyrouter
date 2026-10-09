@@ -51,8 +51,7 @@ cp env.example .env      # rellena ROUTER_USERNAME / ROUTER_PASSWORD (o deja aut
 - **Gateway + web**: `npm run dev:gateway` y abre `http://localhost:8787` (o monta el servicio systemd).
 - **Solo web (dev con proxy)**: `npm run dev:web`.
 - **Escritorio**: `npm run desktop` (Electron; el gateway debe estar corriendo).
-- **Android**: ver abajo. **iPhone**: PWA (Safari → Añadir a pantalla de inicio) o app nativa
-  (ver [`docs/ios-build.md`](docs/ios-build.md)).
+- **Android**: ver abajo. **iPhone**: PWA o app nativa (ver abajo).
 
 ### Android (APK de pruebas)
 
@@ -62,6 +61,36 @@ cd apps/web && npx cap sync android
 cd android && ANDROID_HOME=$HOME/Android/Sdk ./gradlew :app:assembleDebug
 # APK en apps/web/android/app/build/outputs/apk/debug/app-debug.apk
 ```
+
+### iPhone
+
+**Opción rápida (sin Mac) — PWA:** abre el gateway en **Safari** (`http://<ip-del-pc>:8787`) →
+Compartir → **Añadir a pantalla de inicio**. Sirve para el modo gateway (no el directo).
+
+**App nativa — requiere Mac con Xcode + CocoaPods** (con un Apple ID gratuito puedes instalarla en tu
+iPhone; la app caduca a los 7 días). En la Mac, un solo comando:
+
+```bash
+bash scripts/setup-ios.sh      # npm install + build web + cap add/sync ios + abre Xcode
+```
+
+O a mano:
+
+```bash
+npm install
+npm run build -w @ryfsystems/web
+cd apps/web
+npx cap add ios        # solo la 1ª vez
+npx cap sync ios
+npx cap open ios       # abre apps/web/ios/App/App.xcworkspace en Xcode
+```
+
+En Xcode: target **App** → *Signing & Capabilities* → Team = tu Apple ID → conecta el iPhone → Run (▶).
+Para permitir http al router, añade la excepción ATS en `ios/App/App/Info.plist` (snippet en
+[`docs/ios-build.md`](docs/ios-build.md), que incluye la guía completa).
+
+> El proyecto `ios/` NO está en el repo: Capacitor lo genera en la Mac con `cap add ios` (necesita
+> Xcode/CocoaPods, que no existen en Linux). Por eso se crea al ejecutar los comandos de arriba.
 
 ## Configuración (`.env`)
 
