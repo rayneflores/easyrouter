@@ -227,6 +227,26 @@ export class OpenWrtDriver implements RouterDriver {
     throw new DriverError("Config de red no implementada para OpenWrt todavía.", "UNSUPPORTED");
   }
 
+  async getGuestWifi(): Promise<import("@ryfsystems/core").GuestWifi[]> {
+    throw new DriverError("Red de invitados no implementada para OpenWrt todavía.", "UNSUPPORTED");
+  }
+  async setGuestWifi(): Promise<void> {
+    throw new DriverError("Red de invitados no implementada para OpenWrt todavía.", "UNSUPPORTED");
+  }
+
+  async getQos(): Promise<import("@ryfsystems/core").Qos> {
+    throw new DriverError("QoS no implementado para OpenWrt todavía.", "UNSUPPORTED");
+  }
+  async setQosEnabled(): Promise<void> {
+    throw new DriverError("QoS no implementado para OpenWrt todavía.", "UNSUPPORTED");
+  }
+  async setQosRule(): Promise<void> {
+    throw new DriverError("QoS no implementado para OpenWrt todavía.", "UNSUPPORTED");
+  }
+  async deleteQosRule(): Promise<void> {
+    throw new DriverError("QoS no implementado para OpenWrt todavía.", "UNSUPPORTED");
+  }
+
   async getPortForwarding(): Promise<PortForwardRule[]> {
     const cfg = await this.u.call<any>("uci", "get", { config: "firewall" });
     const values: Record<string, any> = cfg.values ?? cfg ?? {};

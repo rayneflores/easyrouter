@@ -1,10 +1,29 @@
-const { app, BrowserWindow, shell, Menu } = require("electron");
+const { app, BrowserWindow, shell, Menu, session, dialog } = require("electron");
+const { autoUpdater } = require("electron-updater");
 const path = require("node:path");
 
 app.setName("EasyRouter");
 
 // URL del gateway (por defecto el servicio local en :8787). Configurable por env.
 const GATEWAY_URL = process.env.EASYROUTER_URL || "http://localhost:8787";
+
+// La API del router no envía cabeceras CORS (solo la raíz), así que en modo directo el
+// renderer no puede leer sus respuestas. En Android lo resuelve CapacitorHttp; aquí se inyectan.
+function allowRouterCors() {
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    const headers = details.responseHeaders ?? {};
+    const hasCors = Object.keys(headers).some((k) => k.toLowerCase() === "access-control-allow-origin");
+    if (hasCors || details.url.startsWith(GATEWAY_URL)) return callback({});
+    callback({
+      responseHeaders: {
+        ...headers,
+        "Access-Control-Allow-Origin": ["*"],
+        "Access-Control-Allow-Headers": ["content-type"],
+        "Access-Control-Allow-Methods": ["GET, POST, OPTIONS"],
+      },
+    });
+  });
+}
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -49,6 +68,30 @@ function createWindow() {
   );
 }
 
-app.whenReady().then(createWindow);
+// Actualización automática desde las Releases de GitHub (latest*.yml que publica el workflow build).
+// Solo en la app empaquetada; en AppImage requiere ejecutarla como AppImage (no extraída).
+const UPDATE_CHECK_MS = 4 * 60 * 60 * 1000;
+
+function setupAutoUpdate() {
+  if (!app.isPackaged) return;
+  autoUpdater.on("error", (err) => console.error("[updater]", err?.message ?? err));
+  autoUpdater.on("update-downloaded", async (info) => {
+    const { response } = await dialog.showMessageBox({
+      type: "info",
+      buttons: ["Reiniciar ahora", "Más tarde"],
+      defaultId: 0,
+      cancelId: 1,
+      title: "Actualización disponible",
+      message: `EasyRouter ${info.version} está lista para instalarse.`,
+      detail: "Se instalará al reiniciar la aplicación.",
+    });
+    if (response === 0) autoUpdater.quitAndInstall();
+  });
+  const check = () => autoUpdater.checkForUpdates().catch(() => {});
+  check();
+  setInterval(check, UPDATE_CHECK_MS);
+}
+
+app.whenReady().then(() => { allowRouterCors(); createWindow(); setupAutoUpdate(); });
 app.on("window-all-closed", () => { if (process.platform !== "darwin") app.quit(); });
 app.on("activate", () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });

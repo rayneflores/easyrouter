@@ -8,6 +8,9 @@ import { PortForwardCard } from "./components/PortForwardCard.js";
 import { AccessControlCard } from "./components/AccessControlCard.js";
 import { ChangePasswordCard } from "./components/ChangePasswordCard.js";
 import { DmzCard } from "./components/DmzCard.js";
+import { GuestWifiCards } from "./components/GuestWifiCard.js";
+import { QosCard } from "./components/QosCard.js";
+import { UpdateBanner } from "./components/UpdateBanner.js";
 import { NetworkCards } from "./components/NetworkCard.js";
 import { applyTheme, getTheme, type Theme } from "./theme.js";
 import { fmtBytes, fmtUptime } from "./format.js";
@@ -36,10 +39,27 @@ const normalizeUrl = (u: string): string => {
 };
 
 export function App() {
-  const authed0 = getMode() === "direct" ? Boolean(getCreds()) : Boolean(getToken());
-  const [authed, setAuthed] = useState(authed0);
-  if (!authed) return <Login onDone={() => setAuthed(true)} />;
-  return <Dashboard onLogout={() => { void logout(); setAuthed(false); }} />;
+  const hasSession = getMode() === "direct" ? Boolean(getCreds()) : Boolean(getToken());
+  const [state, setState] = useState<"checking" | "login" | "in">(hasSession ? "checking" : "login");
+
+  // La sesión guardada puede no valer (el gateway guarda las sesiones en memoria y se pierden
+  // al reiniciarlo): se comprueba antes de mostrar el panel y, si falla, se va al login.
+  useEffect(() => {
+    if (state !== "checking") return;
+    const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 8000));
+    Promise.race([api.capabilities(), timeout])
+      .then(() => setState("in"))
+      .catch(() => { void logout(); setState("login"); });
+  }, []);
+
+  return (
+    <>
+      {isNative && <UpdateBanner />}
+      {state === "checking" && <div className="setup-wrap"><p className="checking">Conectando…</p></div>}
+      {state === "login" && <Login onDone={() => setState("in")} />}
+      {state === "in" && <Dashboard onLogout={() => { void logout(); setState("login"); }} />}
+    </>
+  );
 }
 
 function Login({ onDone }: { onDone: () => void }) {
@@ -87,6 +107,7 @@ function Login({ onDone }: { onDone: () => void }) {
   };
 
   return (
+    <div className="setup-wrap">
     <div className="setup">
       <div className="setup-top">
         <h1>EasyRouter</h1>
@@ -134,6 +155,7 @@ function Login({ onDone }: { onDone: () => void }) {
         <p className="ac-hint">Modo directo: la app habla con el router de esta red (sin gateway). En navegador puede fallar por CORS; en la app nativa funciona.</p>
       )}
       <div className="credit">Desarrollado por Ing. Rayne Flores · ryfsystems</div>
+    </div>
     </div>
   );
 }
@@ -255,6 +277,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
           {wifi?.map((w) => (
             <WifiCard key={w.band} wifi={w} onSaved={() => void load()} onError={setError} />
           )) ?? <Skeleton />}
+          {caps.includes("guestWifi") && <GuestWifiCards onError={setError} />}
         </div>
       )}
 
@@ -282,6 +305,12 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
       {tab === "access" && caps.includes("accessControl") && (
         <div className="grid">
           <AccessControlCard clients={clients} onError={setError} />
+        </div>
+      )}
+
+      {tab === "qos" && caps.includes("qos") && (
+        <div className="grid">
+          <QosCard clients={clients} onError={setError} />
         </div>
       )}
 
@@ -336,6 +365,7 @@ const TABS: { id: string; label: string; cap?: Capability }[] = [
   { id: "network", label: "🖧 Red", cap: "network" },
   { id: "ports", label: "🔀 Puertos / DMZ", cap: "portForward.read" },
   { id: "access", label: "🛡️ Control de acceso", cap: "accessControl" },
+  { id: "qos", label: "🚦 QoS", cap: "qos" },
   { id: "admin", label: "⚙️ Administración", cap: "reboot" },
 ];
 

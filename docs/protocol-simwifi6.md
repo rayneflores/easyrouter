@@ -180,6 +180,16 @@ Regla clave del transporte en escritura:
 - **Port-forward baja** `POST dnat_del` (form): `{ fwids: "<JSON array>" }`, p.ej. `fwids=[0]`
   (string JSON, NO `fwids[]=0`). El id de cada regla es `fwid` en `dnat_get.dnats[]`.
 - **Reboot** `POST system_set {cmd:"reboot"}` (form). Confirmado por bundle; NO ejecutado en pruebas.
+- **Red de invitados** = SSID `myidx:3` de cada banda (no sale en `*_ap_web_list`).
+  Lectura: `transfor_frontend {cmd:"wifi.wifi_1_ap_web_get", data:{myidx:3}}` (2.4G) / `wifi_2_*` (5G).
+  Escritura: `wifi.wifi_X_ap_web_set` con `{ myidx:3, enable, ssid, key, auth, hide, encrypt:"aes",
+  accessmode, accessrule:1, allowedipport:"", usbandwidth, dsbandwidth }` (`accessrule:1` = invitados).
+  Extras del panel no implementados: `wlan_get/set_closetime` (duración) e `iface_get/set_lan_isolation`.
+- **QoS** ("Control de flujo", límite por dispositivo en kb/s; 0 = sin límite), todo form-urlencoded:
+  `tc_get_switch` → `{enable:"1"|"0"}` (`{}` si nunca se configuró) · `tc_set_switch {enable}` ·
+  `tc_get` → `[{ Name, Mac, Ip, Upload, Download, Enable, From }]` (`{}` si vacío) ·
+  `tc_add` / `tc_set` `{ Name, Mac, Ip, Upload, Download, Enable:true, From:"WEB" }` ·
+  `tc_del {Macs:"<JSON array de MACs>"}`.
 
 Validado con `packages/driver-simwifi6/test/writes.integration.test.ts` (gate `RUN_WRITE_TESTS=1`).
 
