@@ -38,17 +38,11 @@ jobs:
           npx cap sync android
           cd android && ./gradlew :app:assembleDebug --no-daemon
 
-      - name: DEBUG 7zip-bin / app-builder-bin
-        run: |
-          echo "7zip-bin version:"; node -p "require('7zip-bin/package.json').version" || true
-          echo "--- node_modules/7zip-bin ---"; ls -la node_modules/7zip-bin/ || true
-          echo "--- find 7zip-bin files ---"; find node_modules/7zip-bin -type f 2>/dev/null | head -40 || true
-          echo "--- app-builder-bin linux ---"; ls -la node_modules/app-builder-bin/linux/x64/ || true
-          echo "--- npm config ---"; npm config get omit; npm config get ignore-scripts
-
-      - name: Escritorio — empaquetar (dir, sin instalador) para validar electron-builder
+      - name: Escritorio — empaquetar (dir) para validar electron-builder
         working-directory: apps/desktop
-        run: npx electron-builder --linux dir --publish never
+        run: |
+          npm install --no-audit --no-fund --no-workspaces
+          npx electron-builder --linux dir --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
 

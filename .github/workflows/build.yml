@@ -52,7 +52,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm install --no-audit --no-fund
+      # Instalación aislada (sin hoisting de workspaces) para que electron-builder
+      # resuelva sus binarios (7zip-bin, app-builder-bin) en apps/desktop/node_modules.
+      - name: Instalar deps (aisladas)
+        working-directory: apps/desktop
+        run: npm install --no-audit --no-fund --no-workspaces
       - name: electron-builder (Linux)
         working-directory: apps/desktop
         run: npx electron-builder --linux AppImage --publish never
@@ -76,7 +80,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm install --no-audit --no-fund
+      - name: Instalar deps (aisladas)
+        working-directory: apps/desktop
+        run: npm install --no-audit --no-fund --no-workspaces
       - name: electron-builder (Windows)
         working-directory: apps/desktop
         run: npx electron-builder --win nsis --publish never
