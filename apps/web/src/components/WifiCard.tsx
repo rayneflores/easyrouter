@@ -17,12 +17,14 @@ export function WifiCard({
   const [ssid, setSsid] = useState(wifi.ssid);
   const [password, setPassword] = useState("");
   const [channel, setChannel] = useState<string>(String(wifi.channel ?? "auto"));
+  const [hidden, setHidden] = useState(Boolean(wifi.hidden));
   const [saving, setSaving] = useState(false);
 
   const reset = () => {
     setSsid(wifi.ssid);
     setPassword("");
     setChannel(String(wifi.channel ?? "auto"));
+    setHidden(Boolean(wifi.hidden));
     setEditing(false);
   };
 
@@ -35,6 +37,7 @@ export function WifiCard({
         ssid: ssid !== wifi.ssid ? ssid : undefined,
         password: password || undefined,
         channel: channel !== curChannel ? (channel === "auto" ? "auto" : Number(channel)) : undefined,
+        hidden: hidden !== Boolean(wifi.hidden) ? hidden : undefined,
       });
       setEditing(false);
       setPassword("");
@@ -75,6 +78,9 @@ export function WifiCard({
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
+          </label>
+          <label className="ac-switch">
+            <input type="checkbox" checked={hidden} onChange={(e) => setHidden(e.target.checked)} /> Ocultar red (no anunciar el SSID)
           </label>
           <div className="form-actions">
             <button onClick={() => void save()} disabled={saving}>

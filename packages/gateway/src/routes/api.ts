@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { DEVICE_TYPES, type AccessMode, type EthernetConfig, type LanConfig, type WifiUpdate, type PortForwardRule } from "@ryfsystems/core";
+import { DEVICE_TYPES, type AccessMode, type EthernetConfig, type GuestWifiUpdate, type LanConfig, type WifiUpdate, type PortForwardRule, type QosRule } from "@ryfsystems/core";
 import type { RouterSession } from "../session.js";
 import { DeviceMetaStore, isDeviceType } from "../deviceMeta.js";
 
@@ -113,6 +113,29 @@ export function registerApiRoutes(
   });
   app.put<{ Body: EthernetConfig & { password?: string } }>("/api/network/ethernet", async (req, reply) => {
     await session.run((d) => d.setEthernet(req.body));
+    return reply.code(204).send();
+  });
+
+  // Red de invitados
+  app.get("/api/guest-wifi", () => session.run((d) => d.getGuestWifi()));
+  app.put<{ Body: GuestWifiUpdate }>("/api/guest-wifi", async (req, reply) => {
+    await session.run((d) => d.setGuestWifi(req.body));
+    return reply.code(204).send();
+  });
+
+  // QoS por dispositivo
+  app.get("/api/qos", () => session.run((d) => d.getQos()));
+  app.put<{ Body: { enabled: boolean } }>("/api/qos", async (req, reply) => {
+    if (typeof req.body?.enabled !== "boolean") return reply.code(400).send({ error: "invalid_body" });
+    await session.run((d) => d.setQosEnabled(req.body.enabled));
+    return reply.code(204).send();
+  });
+  app.put<{ Params: { mac: string }; Body: Omit<QosRule, "mac"> }>("/api/qos/rules/:mac", async (req, reply) => {
+    await session.run((d) => d.setQosRule({ ...req.body, mac: req.params.mac }));
+    return reply.code(204).send();
+  });
+  app.delete<{ Params: { mac: string } }>("/api/qos/rules/:mac", async (req, reply) => {
+    await session.run((d) => d.deleteQosRule(req.params.mac));
     return reply.code(204).send();
   });
 

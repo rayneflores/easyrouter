@@ -14,7 +14,8 @@ EasyRouter publica instaladores automáticamente con **GitHub Actions**
 
 ### 1. Versionado
 
-Actualiza `version` en el `package.json` raíz (y opcionalmente en los workspaces).
+Actualiza `version` en el `package.json` raíz, en `apps/desktop/package.json` (es la versión que
+compara el auto-update de escritorio) y en `apps/web/package.json` (aviso de Android).
 Haz commit:
 
 ```bash
@@ -51,7 +52,14 @@ Al terminar el workflow, en **Releases** tendrás:
 
 - `easyrouter-android.apk` — APK debug (sideload / pruebas).
 - `EasyRouter-*.AppImage` — app de escritorio Linux.
-- `EasyRouter Setup *.exe` — instalador de escritorio Windows (NSIS).
+- `EasyRouter-Setup-*.exe` — instalador de escritorio Windows (NSIS).
+- `latest-linux.yml`, `latest.yml`, `*.exe.blockmap` — metadatos de **actualización automática**
+  (electron-updater). La app de escritorio comprueba al arrancar y cada 4 h la última Release y
+  ofrece reiniciar para instalarla. No los borres de la Release.
+
+En Android la app avisa con un banner cuando la última Release es más nueva que la instalada
+(compara con `version` de `apps/web/package.json`; sube también `versionCode`/`versionName`
+en `apps/web/android/app/build.gradle`).
 
 ## Ejecutar el build sin publicar
 

@@ -7,9 +7,13 @@ import {
   type DeviceInfo,
   type Dmz,
   type EthernetConfig,
+  type GuestWifi,
+  type GuestWifiUpdate,
   type LanConfig,
   type NetworkConfig,
   type PortForwardRule,
+  type Qos,
+  type QosRule,
   type RouterCredentials,
   type RouterDriver,
   type WanStatus,
@@ -48,7 +52,7 @@ export class DemoDriver implements RouterDriver {
   private access: AccessControl = { enabled: false, mode: "black", black: [], white: [] };
 
   capabilities(): Capability[] {
-    return ["wan", "wifi.read", "wifi.write", "clients", "reboot", "factoryReset", "portForward.read", "portForward.write", "accessControl", "dmz", "network"];
+    return ["wan", "wifi.read", "wifi.write", "clients", "reboot", "factoryReset", "portForward.read", "portForward.write", "accessControl", "dmz", "network", "guestWifi", "qos"];
   }
 
   async login(): Promise<void> {
@@ -189,6 +193,42 @@ export class DemoDriver implements RouterDriver {
   async setEthernet(cfg: EthernetConfig): Promise<void> {
     this.assert();
     this.net.ethernet = { ...cfg };
+  }
+
+  private guest: GuestWifi[] = [
+    { band: "2.4g", enabled: false, ssid: "Casa-Invitados", hidden: false, security: "wpa2psk" },
+    { band: "5g", enabled: false, ssid: "Casa-Invitados_5G", hidden: false, security: "wpa2psk" },
+  ];
+  async getGuestWifi(): Promise<GuestWifi[]> {
+    this.assert();
+    return this.guest.map((g) => ({ ...g }));
+  }
+  async setGuestWifi(update: GuestWifiUpdate): Promise<void> {
+    this.assert();
+    const net = this.guest.find((g) => g.band === update.band);
+    if (!net) throw new DriverError(`Banda ${update.band} no existe`, "PROTOCOL");
+    if (update.ssid !== undefined) net.ssid = update.ssid;
+    if (update.enabled !== undefined) net.enabled = update.enabled;
+    if (update.hidden !== undefined) net.hidden = update.hidden;
+  }
+
+  private qos: Qos = { enabled: false, rules: [] };
+  async getQos(): Promise<Qos> {
+    this.assert();
+    return { enabled: this.qos.enabled, rules: this.qos.rules.map((r) => ({ ...r })) };
+  }
+  async setQosEnabled(enabled: boolean): Promise<void> {
+    this.assert();
+    this.qos.enabled = enabled;
+  }
+  async setQosRule(rule: QosRule): Promise<void> {
+    this.assert();
+    const mac = rule.mac.toLowerCase();
+    this.qos.rules = [...this.qos.rules.filter((r) => r.mac !== mac), { ...rule, mac }];
+  }
+  async deleteQosRule(mac: string): Promise<void> {
+    this.assert();
+    this.qos.rules = this.qos.rules.filter((r) => r.mac !== mac.toLowerCase());
   }
 }
 

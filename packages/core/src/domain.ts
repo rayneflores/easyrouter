@@ -44,6 +44,37 @@ export interface WifiUpdate {
   channel?: number | "auto";
 }
 
+// Red de invitados (SSID aislado de la red principal), una por banda.
+export interface GuestWifi {
+  band: WifiBand;
+  enabled: boolean;
+  ssid: string;
+  hidden?: boolean;
+  security?: string;
+}
+
+export interface GuestWifiUpdate {
+  band: WifiBand;
+  enabled?: boolean;
+  ssid?: string;
+  password?: string;
+  hidden?: boolean;
+}
+
+// QoS: límite de ancho de banda por dispositivo (kb/s; 0 = sin límite).
+export interface QosRule {
+  mac: string;
+  name?: string;
+  ip?: string;
+  uploadKbps: number;
+  downloadKbps: number;
+}
+
+export interface Qos {
+  enabled: boolean;
+  rules: QosRule[];
+}
+
 export const DEVICE_TYPES = [
   "phone",
   "tablet",

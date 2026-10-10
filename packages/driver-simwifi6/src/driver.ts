@@ -8,9 +8,13 @@ import {
   type DeviceType,
   type Dmz,
   type EthernetConfig,
+  type GuestWifi,
+  type GuestWifiUpdate,
   type LanConfig,
   type NetworkConfig,
   type PortForwardRule,
+  type Qos,
+  type QosRule,
   type RouterCredentials,
   type RouterDriver,
   type WanStatus,
@@ -45,6 +49,8 @@ export class SimWifi6Driver implements RouterDriver {
       "accessControl",
       "dmz",
       "network",
+      "guestWifi",
+      "qos",
     ];
   }
 
@@ -297,6 +303,88 @@ export class SimWifi6Driver implements RouterDriver {
     await this.t.post("iface_set", { arg: JSON.stringify({ network: { wan } }) });
   }
 
+  // Red de invitados = SSID idx 3 de cada banda (como la página "Red de invitados" del panel).
+  // No aparece en *_ap_web_list; se lee con *_ap_web_get {myidx:3}.
+  async getGuestWifi(): Promise<GuestWifi[]> {
+    const [g2, g5] = await Promise.all([
+      this.t.cmd<any>("wifi.wifi_1_ap_web_get", { myidx: GUEST_IDX }),
+      this.t.cmd<any>("wifi.wifi_2_ap_web_get", { myidx: GUEST_IDX }),
+    ]);
+    return [mapGuest("2.4g", g2), mapGuest("5g", g5)];
+  }
+
+  async setGuestWifi(update: GuestWifiUpdate): Promise<void> {
+    const is5g = update.band === "5g";
+    const ap = await this.t.cmd<any>(is5g ? "wifi.wifi_2_ap_web_get" : "wifi.wifi_1_ap_web_get", { myidx: GUEST_IDX });
+    const curEnabled = ap.enable === "yes" || truthy(ap.enable);
+    const curHidden = ap.hide === 1 || ap.hide === "1" || ap.hide === "yes";
+    // Mismos campos que envía el panel; accessrule 1 = red de invitados (aislada).
+    await this.t.cmd(is5g ? "wifi.wifi_2_ap_web_set" : "wifi.wifi_1_ap_web_set", {
+      myidx: GUEST_IDX,
+      enable: (update.enabled ?? curEnabled) ? "yes" : "no",
+      ssid: update.ssid ?? ap.ssid,
+      key: ap.auth === "open" ? "" : (update.password ?? ap.key),
+      auth: ap.auth,
+      hide: (update.hidden ?? curHidden) ? 1 : 0,
+      encrypt: "aes",
+      accessmode: ap.accessmode ?? 0,
+      accessrule: 1,
+      allowedipport: "",
+      usbandwidth: ap.usbandwidth ?? 0,
+      dsbandwidth: ap.dsbandwidth ?? 0,
+    });
+  }
+
+  // QoS = "Control de flujo" del panel: interruptor global (tc_*_switch) + límite por MAC (tc_*).
+  // tc_get devuelve {} (no []) cuando no hay reglas.
+  async getQos(): Promise<Qos> {
+    const [sw, list] = await Promise.all([this.t.getData<any>("tc_get_switch"), this.t.getData<any>("tc_get")]);
+    const rules: any[] = Array.isArray(list) ? list : Object.values(list ?? {});
+    return {
+      enabled: sw?.enable === "1" || sw?.enable === 1,
+      rules: rules.map((r) => ({
+        mac: String(r.Mac ?? "").toLowerCase(),
+        name: r.Name || undefined,
+        ip: r.Ip || undefined,
+        uploadKbps: num(r.Upload) ?? 0,
+        downloadKbps: num(r.Download) ?? 0,
+      })),
+    };
+  }
+
+  async setQosEnabled(enabled: boolean): Promise<void> {
+    await this.t.post("tc_set_switch", { enable: enabled ? "1" : "0" });
+  }
+
+  async setQosRule(rule: QosRule): Promise<void> {
+    const { rules } = await this.getQos();
+    const exists = rules.some((r) => r.mac === rule.mac.toLowerCase());
+    await this.t.post(exists ? "tc_set" : "tc_add", {
+      Name: rule.name ?? rule.mac,
+      Mac: rule.mac,
+      Ip: rule.ip ?? "",
+      Upload: String(rule.uploadKbps),
+      Download: String(rule.downloadKbps),
+      Enable: true,
+      From: "WEB",
+    });
+  }
+
+  async deleteQosRule(mac: string): Promise<void> {
+    await this.t.post("tc_del", { Macs: JSON.stringify([mac]) });
+  }
+}
+
+const GUEST_IDX = 3;
+
+function mapGuest(band: WifiBand, ap: any): GuestWifi {
+  return {
+    band,
+    enabled: ap?.enable === "yes" || truthy(ap?.enable),
+    ssid: ap?.ssid ?? "",
+    hidden: ap?.hide === 1 || ap?.hide === "1" || ap?.hide === "yes",
+    security: ap?.auth,
+  };
 }
 
 function primaryAp(aps: any[]): any {

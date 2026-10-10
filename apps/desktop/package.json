@@ -1,6 +1,6 @@
 {
   "name": "@ryfsystems/desktop",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "EasyRouter — app de escritorio (ryfsystems)",
   "main": "electron/main.cjs",
@@ -31,6 +31,16 @@
         "nsis"
       ]
     },
+    "nsis": {
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "rayneflores",
+        "repo": "easyrouter"
+      }
+    ],
     "mac": {
       "target": [
         "dmg"
@@ -38,5 +48,8 @@
     }
   },
   "author": "Ing. Rayne Flores <rayne.flores@tribucorp.es>",
-  "publisher": "ryfsystems"
+  "publisher": "ryfsystems",
+  "dependencies": {
+    "electron-updater": "^6.8.9"
+  }
 }

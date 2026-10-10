@@ -5,9 +5,13 @@ import type {
   DeviceInfo,
   Dmz,
   EthernetConfig,
+  GuestWifi,
+  GuestWifiUpdate,
   LanConfig,
   NetworkConfig,
   PortForwardRule,
+  Qos,
+  QosRule,
   WanStatus,
   WifiNetwork,
   WifiUpdate,
@@ -25,7 +29,9 @@ export type Capability =
   | "portForward.write"
   | "accessControl"
   | "dmz"
-  | "network";
+  | "network"
+  | "guestWifi"
+  | "qos";
 
 export interface RouterCredentials {
   baseUrl: string;
@@ -87,6 +93,16 @@ export interface RouterDriver {
   getNetwork(): Promise<NetworkConfig>;
   setLan(cfg: LanConfig): Promise<void>;
   setEthernet(cfg: EthernetConfig & { password?: string }): Promise<void>;
+
+  // Red de invitados. Opcional (capability "guestWifi").
+  getGuestWifi(): Promise<GuestWifi[]>;
+  setGuestWifi(update: GuestWifiUpdate): Promise<void>;
+
+  // QoS por dispositivo. Opcional (capability "qos"). setQosRule crea o actualiza por MAC.
+  getQos(): Promise<Qos>;
+  setQosEnabled(enabled: boolean): Promise<void>;
+  setQosRule(rule: QosRule): Promise<void>;
+  deleteQosRule(mac: string): Promise<void>;
 }
 
 export type DriverFactory = (creds: RouterCredentials) => RouterDriver;

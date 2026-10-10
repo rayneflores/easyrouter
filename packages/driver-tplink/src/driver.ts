@@ -104,6 +104,24 @@ export class TpLinkFamilyDriver implements RouterDriver {
   async setEthernet(): Promise<void> {
     this.pending();
   }
+  async getGuestWifi(): Promise<import("@ryfsystems/core").GuestWifi[]> {
+    this.pending();
+  }
+  async setGuestWifi(): Promise<void> {
+    this.pending();
+  }
+  async getQos(): Promise<import("@ryfsystems/core").Qos> {
+    this.pending();
+  }
+  async setQosEnabled(): Promise<void> {
+    this.pending();
+  }
+  async setQosRule(): Promise<void> {
+    this.pending();
+  }
+  async deleteQosRule(): Promise<void> {
+    this.pending();
+  }
 }
 
 export function createTpLinkDriver(id: string, creds: RouterCredentials): RouterDriver {

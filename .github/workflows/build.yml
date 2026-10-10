@@ -66,11 +66,14 @@ jobs:
         with:
           name: easyrouter-linux
           path: apps/desktop/dist/*.AppImage
+      # latest-linux.yml es lo que consulta electron-updater para la actualización automática.
       - name: Attach to release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: apps/desktop/dist/*.AppImage
+          files: |
+            apps/desktop/dist/*.AppImage
+            apps/desktop/dist/latest-linux.yml
 
   desktop-windows:
     name: Desktop Windows (NSIS)
@@ -92,8 +95,12 @@ jobs:
         with:
           name: easyrouter-windows
           path: apps/desktop/dist/*.exe
+      # latest.yml + .blockmap: actualización automática (electron-updater) en Windows.
       - name: Attach to release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: apps/desktop/dist/*.exe
+          files: |
+            apps/desktop/dist/*.exe
+            apps/desktop/dist/*.exe.blockmap
+            apps/desktop/dist/latest.yml
