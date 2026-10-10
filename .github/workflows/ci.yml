@@ -25,7 +25,7 @@ jobs:
           java-version: "21"
 
       - name: Instalar dependencias
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: Typecheck + build (core, drivers, gateway)
         run: npm run build
