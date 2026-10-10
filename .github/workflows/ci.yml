@@ -1,0 +1,49 @@
+name: ci
+
+# Pruebas de integración continua: valida que TODO compila antes de publicar.
+# Evita que un push rompa los builds de release (web, Android, escritorio).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-check:
+    name: Compila todo (TS + web + Android + escritorio)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Typecheck + build (core, drivers, gateway)
+        run: npm run build
+
+      - name: Build web (incluye drivers embebidos)
+        run: npm run build --workspace @ryfsystems/web
+
+      - name: Android — sync + compilar APK debug
+        working-directory: apps/web
+        run: |
+          npx cap sync android
+          cd android && ./gradlew :app:assembleDebug --no-daemon
+
+      - name: Escritorio — empaquetar (dir, sin instalador) para validar electron-builder
+        working-directory: apps/desktop
+        run: npx electron-builder --linux dir --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+      - name: Verificar que el APK existe
+        run: test -f apps/web/android/app/build/outputs/apk/debug/app-debug.apk

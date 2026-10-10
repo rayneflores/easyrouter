@@ -10,17 +10,32 @@
   },
   "devDependencies": {
     "electron": "^33.2.0",
-    "electron-builder": "^25.1.8"
+    "electron-builder": "^24.13.3"
   },
   "build": {
     "appId": "es.ryfsystems.easyrouter",
     "productName": "EasyRouter",
     "electronVersion": "33.4.11",
     "icon": "build/icon.png",
-    "files": ["electron/**/*"],
-    "linux": { "target": ["AppImage"], "category": "Network" },
-    "win": { "target": ["nsis"] },
-    "mac": { "target": ["dmg"] }
+    "files": [
+      "electron/**/*"
+    ],
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Network"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ]
+    }
   },
   "author": "Ing. Rayne Flores <rayne.flores@tribucorp.es>",
   "publisher": "ryfsystems"

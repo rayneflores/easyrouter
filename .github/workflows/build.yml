@@ -25,6 +25,7 @@ jobs:
           distribution: temurin
           java-version: "21"
       - run: npm ci
+      - run: npm run build            # compila core/drivers/gateway (dist) que la web importa
       - run: npm run build --workspace @ryfsystems/web
       - name: Capacitor sync
         working-directory: apps/web
