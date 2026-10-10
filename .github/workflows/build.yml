@@ -1,0 +1,95 @@
+name: build
+
+# Compila instaladores de escritorio (Linux/Windows) y la APK de Android.
+# Se dispara al publicar un tag v* o manualmente. En tags, adjunta todo a la Release.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  android:
+    name: Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - run: npm ci
+      - run: npm run build --workspace @ryfsystems/web
+      - name: Capacitor sync
+        working-directory: apps/web
+        run: npx cap sync android
+      - name: Gradle assembleDebug
+        working-directory: apps/web/android
+        run: ./gradlew :app:assembleDebug --no-daemon
+      - name: Rename APK
+        run: cp apps/web/android/app/build/outputs/apk/debug/app-debug.apk easyrouter-android.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: easyrouter-android
+          path: easyrouter-android.apk
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: easyrouter-android.apk
+
+  desktop-linux:
+    name: Desktop Linux (AppImage)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: electron-builder (Linux)
+        working-directory: apps/desktop
+        run: npx electron-builder --linux AppImage --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: easyrouter-linux
+          path: apps/desktop/dist/*.AppImage
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: apps/desktop/dist/*.AppImage
+
+  desktop-windows:
+    name: Desktop Windows (NSIS)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: electron-builder (Windows)
+        working-directory: apps/desktop
+        run: npx electron-builder --win nsis --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: easyrouter-windows
+          path: apps/desktop/dist/*.exe
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: apps/desktop/dist/*.exe
