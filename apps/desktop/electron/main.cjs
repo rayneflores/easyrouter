@@ -1,4 +1,5 @@
 const { app, BrowserWindow, shell, Menu } = require("electron");
+const path = require("node:path");
 
 // URL del gateway (por defecto el servicio local en :8787). Configurable por env.
 const GATEWAY_URL = process.env.EASYROUTER_URL || "http://localhost:8787";
@@ -9,6 +10,7 @@ function createWindow() {
     height: 780,
     minWidth: 360,
     title: "EasyRouter",
+    icon: path.join(__dirname, "..", "build", "icon.png"),
     autoHideMenuBar: true,
     webPreferences: { contextIsolation: true },
   });

@@ -15,6 +15,7 @@
   "build": {
     "appId": "es.ryfsystems.easyrouter",
     "productName": "EasyRouter",
+    "icon": "build/icon.png",
     "files": ["electron/**/*"],
     "linux": { "target": ["AppImage"], "category": "Network" },
     "win": { "target": ["nsis"] },
