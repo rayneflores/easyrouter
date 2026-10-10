@@ -19,7 +19,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -53,7 +52,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
       - run: npm install --no-audit --no-fund
       - name: electron-builder (Linux)
         working-directory: apps/desktop
@@ -78,7 +76,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
       - run: npm install --no-audit --no-fund
       - name: electron-builder (Windows)
         working-directory: apps/desktop
