@@ -1,7 +1,7 @@
 name: ci
 
 # Pruebas de integración continua: valida que TODO compila antes de publicar.
-# Evita que un push rompa los builds de release (web, Android, escritorio).
+# Evita que un push rompa los builds de release. Un job por plataforma, en paralelo.
 on:
   push:
     branches: [main]
@@ -10,8 +10,21 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-check:
-    name: Compila todo (TS + web + Android + escritorio)
+  web:
+    name: Web (TS + core/drivers/gateway + web)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Instalar dependencias
+        run: npm install --no-audit --no-fund
+      - name: Build (Turborepo)
+        run: npm run build
+
+  android:
+    name: Android (APK debug)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,29 +35,49 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-
       - name: Instalar dependencias
         run: npm install --no-audit --no-fund
-
-      - name: Typecheck + build (core, drivers, gateway)
-        run: npm run build
-
-      - name: Build web (incluye drivers embebidos)
-        run: npm run build --workspace @ryfsystems/web
-
-      - name: Android — sync + compilar APK debug
+      - name: Build web (Turborepo)
+        run: npx turbo run build --filter=@ryfsystems/web
+      - name: Capacitor sync + compilar APK
         working-directory: apps/web
         run: |
           npx cap sync android
           cd android && ./gradlew :app:assembleDebug --no-daemon
+      - name: Verificar que el APK existe
+        run: test -f apps/web/android/app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Escritorio — empaquetar (dir) para validar electron-builder
+  desktop-linux:
+    name: Escritorio Linux (electron-builder)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # Instalación aislada (sin workspaces) para que electron-builder resuelva sus binarios.
+      - name: Instalar deps (aisladas)
         working-directory: apps/desktop
-        run: |
-          npm install --no-audit --no-fund --no-workspaces
-          npx electron-builder --linux dir --publish never
+        run: npm install --no-audit --no-fund --no-workspaces
+      - name: Empaquetar (dir) para validar electron-builder
+        working-directory: apps/desktop
+        run: npx electron-builder --linux dir --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
 
-      - name: Verificar que el APK existe
-        run: test -f apps/web/android/app/build/outputs/apk/debug/app-debug.apk
+  desktop-windows:
+    name: Escritorio Windows (electron-builder)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Instalar deps (aisladas)
+        working-directory: apps/desktop
+        run: npm install --no-audit --no-fund --no-workspaces
+      - name: Empaquetar (dir) para validar electron-builder
+        working-directory: apps/desktop
+        run: npx electron-builder --win dir --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"

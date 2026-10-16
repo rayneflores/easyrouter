@@ -16,7 +16,7 @@ echo "==> Instalando dependencias"
 npm install
 
 echo "==> Construyendo la web"
-npm run build -w @ryfsystems/web
+npx turbo run build --filter=@ryfsystems/web
 
 echo "==> Añadiendo/sincronizando plataforma iOS"
 cd apps/web

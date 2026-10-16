@@ -89,7 +89,7 @@ O a mano:
 
 ```bash
 npm install
-npm run build -w @ryfsystems/web
+npx turbo run build --filter=@ryfsystems/web   # Turborepo: web + core/drivers de los que depende
 cd apps/web
 npx cap add ios        # solo la 1ª vez
 npx cap sync ios
