@@ -38,15 +38,26 @@ Dos formas de conectar:
 
 Cada funcionalidad se muestra solo si el driver del router la soporta (gating por *capabilities*).
 
-## Puesta en marcha
+## Instalación (usuarios)
 
-Requisitos: Node 20+.
+Descarga el instalador de la última [Release](https://github.com/rayneflores/easyrouter/releases/latest):
+
+- **Windows**: `EasyRouter-Setup-*.exe` · **Linux**: `EasyRouter-*.AppImage` (se actualizan solas).
+- **Android**: `easyrouter-android.apk` (APK de pruebas; la app avisa cuando hay versión nueva).
+- **iPhone**: no se distribuye; compílala en una Mac (ver [iPhone](#iphone)) o usa la PWA.
+
+## Puesta en marcha (desarrollo)
+
+Requisitos: Node 20+ y npm.
 
 ```bash
 npm install
-npm run build
+npm run build            # Turborepo: compila core, drivers, gateway y web (con caché)
 cp env.example .env      # rellena ROUTER_USERNAME / ROUTER_PASSWORD (o deja autodetección)
 ```
+
+`npm run build` usa [Turborepo](https://turborepo.com) (`turbo.json`): respeta el orden de dependencias
+entre paquetes y reutiliza lo ya compilado. Para compilar un solo paquete: `npx turbo run build --filter=@ryfsystems/web`.
 
 - **Gateway + web**: `npm run dev:gateway` y abre `http://localhost:8787` (o monta el servicio systemd).
 - **Solo web (dev con proxy)**: `npm run dev:web`.
@@ -56,7 +67,7 @@ cp env.example .env      # rellena ROUTER_USERNAME / ROUTER_PASSWORD (o deja aut
 ### Android (APK de pruebas)
 
 ```bash
-npm run build -w @ryfsystems/web
+npm run build
 cd apps/web && npx cap sync android
 cd android && ANDROID_HOME=$HOME/Android/Sdk ./gradlew :app:assembleDebug
 # APK en apps/web/android/app/build/outputs/apk/debug/app-debug.apk
@@ -71,7 +82,7 @@ Compartir → **Añadir a pantalla de inicio**. Sirve para el modo gateway (no e
 iPhone; la app caduca a los 7 días). En la Mac, un solo comando:
 
 ```bash
-bash scripts/setup-ios.sh      # npm install + build web + cap add/sync ios + abre Xcode
+bash scripts/setup-ios.sh      # npm install + build web + cap add/sync ios + ATS/red local + abre Xcode
 ```
 
 O a mano:
@@ -86,8 +97,9 @@ npx cap open ios       # abre apps/web/ios/App/App.xcworkspace en Xcode
 ```
 
 En Xcode: target **App** → *Signing & Capabilities* → Team = tu Apple ID → conecta el iPhone → Run (▶).
-Para permitir http al router, añade la excepción ATS en `ios/App/App/Info.plist` (snippet en
-[`docs/ios-build.md`](docs/ios-build.md), que incluye la guía completa).
+`setup-ios.sh` ya deja en `ios/App/App/Info.plist` la excepción ATS (http al router) y el permiso de
+**red local**; si lo haces a mano, añádelos tú (snippet en [`docs/ios-build.md`](docs/ios-build.md)).
+La primera vez, acepta el permiso de red local que pide la app o no detectará el router.
 
 > El proyecto `ios/` NO está en el repo: Capacitor lo genera en la Mac con `cap add ios` (necesita
 > Xcode/CocoaPods, que no existen en Linux). Por eso se crea al ejecutar los comandos de arriba.
