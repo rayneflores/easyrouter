@@ -223,9 +223,9 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
         <div className="actions">
           <ThemeToggle />
           <button onClick={() => void load()} disabled={loading}>
-            {loading ? "…" : "🔄 Actualizar"}
+            {loading ? "…" : <>🔄<span className="btn-label"> Actualizar</span></>}
           </button>
-          <button className="ghost" onClick={onLogout}>🚪 Salir</button>
+          <button className="ghost" onClick={onLogout} aria-label="Salir">🚪<span className="btn-label"> Salir</span></button>
         </div>
       </header>
 

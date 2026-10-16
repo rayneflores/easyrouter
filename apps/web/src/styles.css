@@ -33,6 +33,7 @@
 :root[data-theme="light"] { color-scheme: light; }
 
 * { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body {
   margin: 0;
   font: 15px/1.5 system-ui, -apple-system, sans-serif;
@@ -76,13 +77,15 @@ button.link { background: none; border: none; color: var(--accent); padding: 4px
 
 .grid {
   display: grid; gap: 16px;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
 }
 .card {
   background: var(--card); border: 1px solid var(--border);
   border-radius: 12px; padding: 16px 18px;
 }
 .card.wide { grid-column: 1 / -1; }
+.grid > * { min-width: 0; }
+.card table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .card h2 {
   font-size: 15px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px;
 }
@@ -209,4 +212,32 @@ code { background: var(--border); padding: 1px 5px; border-radius: 4px; font-siz
 .router-ip { font-size: 11px; opacity: .75; margin-top: 2px; }
 .credit {
   margin-top: 4px; text-align: center; font-size: 12px; color: var(--muted);
+}
+
+/* Móvil / iOS */
+@media (max-width: 640px) {
+  body { font-size: 14px; }
+  .app { padding: calc(12px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left)); }
+  header { margin-bottom: 12px; gap: 8px; flex-wrap: nowrap; }
+  header h1 { font-size: 18px; }
+  .btn-label { display: none; }
+  .actions { gap: 6px; }
+  button { padding: 6px 10px; }
+  .tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-bottom: 12px; gap: 0; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabs button { padding: 8px 12px; white-space: nowrap; flex-shrink: 0; }
+  .grid { gap: 10px; }
+  .card { padding: 12px 14px; border-radius: 10px; }
+  .card h2 { font-size: 14px; margin-bottom: 8px; }
+  .row { padding: 3px 0; }
+  th, td { padding: 6px 8px; }
+  table { font-size: 13px; }
+  .setup { padding: 20px 16px; gap: 10px; }
+  .setup h1 { font-size: 22px; }
+  .admin-row { flex-wrap: wrap; }
+  .pf-form input { width: 100%; flex: 1 1 120px; }
+}
+/* iOS hace zoom automático al enfocar inputs con fuente < 16px y no lo deshace. */
+@media (pointer: coarse) {
+  input, select, textarea { font-size: 16px !important; }
 }

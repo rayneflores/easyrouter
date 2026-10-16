@@ -39,25 +39,23 @@ En Xcode:
 5. Primera vez en el iPhone: **Ajustes → General → VPN y gestión de dispositivos** → confía en tu
    certificado de desarrollador.
 
-## Permitir HTTP al router/gateway (ATS)
+## Permitir HTTP al router/gateway (ATS) y red local
 
-iOS bloquea `http://` por App Transport Security. EasyRouter habla con el router/gateway por http en la
-LAN, así que hay que añadir una excepción en `apps/web/ios/App/App/Info.plist` (dentro del `<dict>` raíz):
+iOS bloquea `http://` por App Transport Security y, desde iOS 14, exige permiso de **red local**.
+`scripts/setup-ios.sh` lo deja configurado en `apps/web/ios/App/App/Info.plist` en cada ejecución:
 
 ```xml
 <key>NSAppTransportSecurity</key>
 <dict>
-  <key>NSAllowsArbitraryLoads</key>
-  <true/>
+  <key>NSAllowsArbitraryLoads</key><true/>
+  <key>NSAllowsLocalNetworking</key><true/>
 </dict>
+<key>NSLocalNetworkUsageDescription</key>
+<string>EasyRouter necesita acceder a tu red local para detectar y gestionar el router.</string>
 ```
 
-(Alternativa más estricta: en vez de `NSAllowsArbitraryLoads`, declarar excepciones por dominio/IP con
-`NSExceptionDomains`. Para pruebas, `NSAllowsArbitraryLoads` es lo más simple.)
-
-> Nota: `CapacitorHttp` (ya activado en `capacitor.config.ts`) hace las peticiones por HTTP **nativo**,
-> lo que también evita problemas de CORS en **modo directo**. Aun así, mantener la excepción ATS evita
-> bloqueos de cleartext.
+Si generaste `ios/` a mano, añade esas claves o vuelve a ejecutar el script. La primera vez la app pedirá
+permiso de red local: hay que aceptarlo (o activarlo en Ajustes → Privacidad → Red local → EasyRouter).
 
 ## Modos de uso en el iPhone
 

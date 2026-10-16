@@ -1,6 +1,6 @@
 {
   "name": "@ryfsystems/desktop",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "description": "EasyRouter — app de escritorio (ryfsystems)",
   "main": "electron/main.cjs",
