@@ -18,7 +18,7 @@ tu propio iPhone para pruebas (sin pagar el Developer Program), con estas limita
 ```bash
 # 1. Dependencias y build de la web
 npm install
-npm run build -w @ryfsystems/web
+npx turbo run build --filter=@ryfsystems/web
 
 # 2. Crear/añadir la plataforma iOS (SOLO en la Mac; en Linux no se puede)
 cd apps/web
@@ -68,7 +68,7 @@ permiso de red local: hay que aceptarlo (o activarlo en Ajustes → Privacidad �
 ## Volver a desplegar tras cambios
 
 ```bash
-npm run build -w @ryfsystems/web
+npx turbo run build --filter=@ryfsystems/web
 cd apps/web && npx cap sync ios
 # y Run de nuevo en Xcode
 ```
