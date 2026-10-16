@@ -30,3 +30,6 @@ apps/web/ios/App/App/public/
 # Electron
 apps/desktop/dist/
 release/
+
+# Turborepo
+.turbo/

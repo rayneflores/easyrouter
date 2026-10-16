@@ -25,12 +25,23 @@ if [ ! -d ios ]; then
 fi
 npx cap sync ios
 
+echo "==> Permitiendo HTTP en la LAN (ATS) y acceso a red local en Info.plist"
+PLIST=ios/App/App/Info.plist
+PB=/usr/libexec/PlistBuddy
+# El router/gateway habla http plano por IP; sin esto iOS bloquea la detección y el login.
+$PB -c "Delete :NSAppTransportSecurity" "$PLIST" 2>/dev/null || true
+$PB -c "Add :NSAppTransportSecurity dict" "$PLIST"
+$PB -c "Add :NSAppTransportSecurity:NSAllowsArbitraryLoads bool true" "$PLIST"
+$PB -c "Add :NSAppTransportSecurity:NSAllowsLocalNetworking bool true" "$PLIST"
+# iOS 14+: sin esta clave el sistema no pide permiso de red local y las peticiones a 192.168.x.x fallan.
+$PB -c "Delete :NSLocalNetworkUsageDescription" "$PLIST" 2>/dev/null || true
+$PB -c "Add :NSLocalNetworkUsageDescription string \"EasyRouter necesita acceder a tu red local para detectar y gestionar el router.\"" "$PLIST"
+
 echo
 echo "==> Listo. En Xcode (que se abrirá ahora):"
 echo "   1) Target 'App' > Signing & Capabilities > Team = tu Apple ID."
 echo "   2) Conecta el iPhone por USB, pulsa Run (▶)."
 echo "   3) iPhone: Ajustes > General > VPN y gestión de dispositivos > confía en el certificado."
-echo "   Nota: para http al router, añade la excepción ATS en ios/App/App/Info.plist (ver docs/ios-build.md)."
 echo
 
 npx cap open ios
